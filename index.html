@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Générateur de Rapport</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+        }
+        
+        .form-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .form-control {
+            flex: 1;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #34495e;
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        
+        .section {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            border-left: 4px solid #3498db;
+        }
+        
+        .section-title {
+            margin-top: 0;
+            color: #3498db;
+            font-size: 18px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        
+        button.add-btn {
+            background-color: #27ae60;
+        }
+        
+        button.reset-btn {
+            background-color: #e74c3c;
+        }
+        
+        button:hover {
+            opacity: 0.9;
+        }
+        
+        .buttons-group {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 30px;
+        }
+        
+        .auto-generated {
+            background-color: #f0f0f0;
+            color: #777;
+        }
+        
+        .product-item, .document-item {
+            background-color: white;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            border: 1px solid #eee;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .ql-container {
+            height: 200px;
+        }
+        
+        .image-preview {
+            margin-top: 10px;
+            max-width: 100%;
+        }
+        
+        .image-preview img {
+            max-width: 100%;
+            max-height: 150px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 3px;
+        }
+        
+        .report-images {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .report-images img {
+            max-width: 200px;
+            max-height: 200px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 5px;
+        }
+    </style>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/quill/1.3.6/quill.snow.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <h1>Générateur de Rapport de Commande</h1>
+        
+        <form id="reportForm">
+            <div class="form-header">
+                <div class="form-control">
+                    <label>Date d'ajout</label>
+                    <input type="text" id="dateAjout" class="auto-generated" readonly>
+                </div>
+                <div class="form-control">
+                    <label>Référence</label>
+                    <input type="text" id="reference" class="auto-generated" readonly>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>Station</label>
+                <select id="station" required>
+                    <option value="">Sélectionner une station</option>
+                    <optgroup label="Abidjan - Marcory">
+                        <option value="abidjan-gbombelo">Gbombelo</option>
+                        <option value="abidjan-zouzoua">Zouzoua</option>
+                    </optgroup>
+                    <optgroup label="Yamoussoukro">
+                        <option value="yamoussoukro-arrah">Arrah</option>
+                        <option value="yamoussoukro-biaffra">Biaffra</option>
+                    </optgroup>
+                    <optgroup label="Ville - Commune">
+                        <option value="ville-station1">Station 1</option>
+                        <option value="ville-station2">Station 2</option>
+                    </optgroup>
+                </select>
+            </div>
+            
+            <div class="section">
+                <h3 class="section-title">
+                    Documents Affiliés
+                    <button type="button" id="addDocumentBtn" class="add-btn">Ajouter plus</button>
+                </h3>
+                
+                <div id="documentsContainer">
+                    <div class="document-item">
+                        <div class="form-row">
+                            <div class="form-control">
+                                <label>Image scanner</label>
+                                <input type="file" class="document-file" accept=".jpg,.gif,.png,.avif,.pdf" required>
+                                <div class="image-preview"></div>
+                            </div>
+                            <div class="form-control">
+                                <label>Type</label>
+                                <select class="document-type" required>
+                                    <option value="">Sélectionner un type</option>
+                                    <option value="facture">Facture proforma</option>
+                                    <option value="bon">Bon de commande</option>
+                                    <option value="autre">Autre</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-control preciser-autre hidden">
+                                <label>Préciser autre</label>
+                                <input type="text">
+                            </div>
+                            <div class="form-control">
+                                <label>Date de prise</label>
+                                <input type="date" required>
+                            </div>
+                            <div class="form-control">
+                                <label>Référence</label>
+                                <input type="text" required>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3 class="section-title">
+                    Produits
+                    <button type="button" id="addProductBtn" class="add-btn">Ajouter plus</button>
+                </h3>
+                
+                <div id="productsContainer">
+                    <div class="product-item">
+                        <div class="form-row">
+                            <div class="form-control">
+                                <label>Désignation</label>
+                                <input type="text" class="designation" required>
+                            </div>
+                            <div class="form-control">
+                                <label>Quantité</label>
+                                <input type="number" class="quantity" min="1" value="1" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-control">
+                                <label>Coût unitaire</label>
+                                <input type="number" class="cost" min="0" step="0.01" required>
+                            </div>
+                            <div class="form-control">
+                                <label>Fournisseur</label>
+                                <select required>
+                                    <option value="">Sélectionner un fournisseur</option>
+                                    <option value="fournisseur1">Fournisseur 1</option>
+                                    <option value="fournisseur2">Fournisseur 2</option>
+                                    <option value="fournisseur3">Fournisseur 3</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>Coût total</label>
+                <input type="number" id="coutTotal" readonly class="auto-generated">
+            </div>
+            
+            <div class="form-group">
+                <label>Associer à une intervention en particulier (optionnel)</label>
+                <select id="intervention">
+                    <option value="">Sélectionner une intervention</option>
+                    <!-- Ces options seront remplies dynamiquement en fonction de la station sélectionnée -->
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label>Remarque / Observation (optionnel)</label>
+                <div id="editor"></div>
+            </div>
+            
+            <div class="buttons-group">
+                <button type="button" id="resetBtn" class="reset-btn">Réinitialiser</button>
+                <button type="submit" id="saveBtn">Enregistrer</button>
+                <button type="button" id="genReportBtn">Enregistrer et Générer Rapport</button>
+            </div>
+        </form>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/quill/1.3.6/quill.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialiser l'éditeur de texte riche
+            const quill = new Quill('#editor', {
+                theme: 'snow'
+            });
+            
+            // Générer la date d'ajout
+            const now = new Date();
+            document.getElementById('dateAjout').value = now.toLocaleDateString('fr-FR');
+            
+            // Générer une référence aléatoire
+            const refPrefix = 'REF-';
+            const refNumber = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+            document.getElementById('reference').value = refPrefix + refNumber;
+            
+            // Gestion des documents
+            document.getElementById('addDocumentBtn').addEventListener('click', function() {
+                const container = document.getElementById('documentsContainer');
+                const newDocument = container.firstElementChild.cloneNode(true);
+                
+                // Réinitialiser les champs
+                const inputs = newDocument.querySelectorAll('input');
+                inputs.forEach(input => input.value = '');
+                
+                const selects = newDocument.querySelectorAll('select');
+                selects.forEach(select => select.selectedIndex = 0);
+                
+                // Cacher le champ "préciser autre"
+                const preciserAutre = newDocument.querySelector('.preciser-autre');
+                preciserAutre.classList.add('hidden');
+                
+                // Ajouter l'écouteur d'événement pour le type de document
+                const typeSelect = newDocument.querySelector('.document-type');
+                typeSelect.addEventListener('change', handleDocumentTypeChange);
+                
+                // Ajouter l'écouteur d'événement pour la prévisualisation de l'image
+                const fileInput = newDocument.querySelector('.document-file');
+                fileInput.addEventListener('change', handleFilePreview);
+                
+                container.appendChild(newDocument);
+            });
+            
+            // Gestion des produits
+            document.getElementById('addProductBtn').addEventListener('click', function() {
+                const container = document.getElementById('productsContainer');
+                const newProduct = container.firstElementChild.cloneNode(true);
+                
+                // Réinitialiser les champs
+                const inputs = newProduct.querySelectorAll('input:not(.quantity)');
+                inputs.forEach(input => input.value = '');
+                
+                const quantity = newProduct.querySelector('.quantity');
+                quantity.value = 1;
+                
+                const selects = newProduct.querySelectorAll('select');
+                selects.forEach(select => select.selectedIndex = 0);
+                
+                // Ajouter les écouteurs d'événements pour le calcul du coût total
+                const quantityInput = newProduct.querySelector('.quantity');
+                const costInput = newProduct.querySelector('.cost');
+                
+                quantityInput.addEventListener('input', calculateTotalCost);
+                costInput.addEventListener('input', calculateTotalCost);
+                
+                container.appendChild(newProduct);
+            });
+            
+            // Écouteurs d'événements pour le calcul du coût total
+            document.querySelectorAll('.quantity, .cost').forEach(input => {
+                input.addEventListener('input', calculateTotalCost);
+            });
+            
+            // Fonction pour calculer le coût total
+            function calculateTotalCost() {
+                let total = 0;
+                const products = document.querySelectorAll('.product-item');
+                
+                products.forEach(product => {
+                    const quantity = product.querySelector('.quantity').value || 0;
+                    const cost = product.querySelector('.cost').value || 0;
+                    total += quantity * cost;
+                });
+                
+                document.getElementById('coutTotal').value = total.toFixed(2);
+            }
+            
+            // Fonction pour gérer le champ "préciser autre"
+            function handleDocumentTypeChange(e) {
+                const type = e.target.value;
+                const documentItem = e.target.closest('.document-item');
+                const preciserAutre = documentItem.querySelector('.preciser-autre');
+                
+                if (type === 'autre') {
+                    preciserAutre.classList.remove('hidden');
+                    preciserAutre.querySelector('input').setAttribute('required', '');
+                } else {
+                    preciserAutre.classList.add('hidden');
+                    preciserAutre.querySelector('input').removeAttribute('required');
+                }
+            }
+            
+            // Fonction pour prévisualiser les fichiers
+            function handleFilePreview(e) {
+                const file = e.target.files[0];
+                const previewContainer = e.target.nextElementSibling;
+                
+                if (!file) {
+                    previewContainer.innerHTML = '';
+                    return;
+                }
+                
+                // Vérifier si c'est une image
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        previewContainer.innerHTML = `<img src="${e.target.result}" alt="Prévisualisation">`;
+                    };
+                    reader.readAsDataURL(file);
+                } else if (file.type === 'application/pdf') {
+                    // Pour les PDF, afficher une icône ou un message
+                    previewContainer.innerHTML = `<p><strong>PDF:</strong> ${file.name}</p>`;
+                }
+            }
+            
+            // Attacher l'écouteur d'événement aux types de documents existants
+            document.querySelectorAll('.document-type').forEach(select => {
+                select.addEventListener('change', handleDocumentTypeChange);
+            });
+            
+            // Attacher l'écouteur d'événement pour la prévisualisation des images
+            document.querySelectorAll('.document-file').forEach(input => {
+                input.addEventListener('change', handleFilePreview);
+            });
+            
+            // Gestion de la sélection de station pour charger les interventions
+            document.getElementById('station').addEventListener('change', function(e) {
+                const stationId = e.target.value;
+                const interventionSelect = document.getElementById('intervention');
+                
+                // Vider les options actuelles
+                interventionSelect.innerHTML = '<option value="">Sélectionner une intervention</option>';
+                
+                if (!stationId) return;
+                
+                // Simuler le chargement des interventions liées à la station
+                const interventions = getInterventionsForStation(stationId);
+                
+                // Ajouter les nouvelles options
+                interventions.forEach(intervention => {
+                    const option = document.createElement('option');
+                    option.value = intervention.id;
+                    option.textContent = `${intervention.reference} - ${intervention.date} - ${intervention.technicien} - ${intervention.domaine}`;
+                    interventionSelect.appendChild(option);
+                });
+            });
+            
+            // Fonction de simulation pour obtenir les interventions liées à une station
+            function getInterventionsForStation(stationId) {
+                // Ceci est une simulation, dans un cas réel, ces données viendraient d'une API ou d'une base de données
+                const interventionsMap = {
+                    'abidjan-gbombelo': [
+                        { id: 'int001', reference: 'INT-2023-001', date: '15/01/2023', technicien: 'Konan Kouadio', domaine: 'Distributeurs' },
+                        { id: 'int002', reference: 'INT-2023-015', date: '22/02/2023', technicien: 'Aka Jean', domaine: 'Sécurité' }
+                    ],
+                    'abidjan-zouzoua': [
+                        { id: 'int003', reference: 'INT-2023-032', date: '10/03/2023', technicien: 'Koffi Pierre', domaine: 'Groupe électrogène' }
+                    ],
+                    'yamoussoukro-arrah': [
+                        { id: 'int004', reference: 'INT-2023-045', date: '05/04/2023', technicien: 'Bamba Ibrahim', domaine: 'Cuve et tuyauterie' },
+                        { id: 'int005', reference: 'INT-2023-067', date: '18/05/2023', technicien: 'Touré Mamadou', domaine: 'Distributeurs' }
+                    ],
+                    'yamoussoukro-biaffra': [
+                        { id: 'int006', reference: 'INT-2023-089', date: '12/06/2023', technicien: 'Kouamé François', domaine: 'Sécurité' }
+                    ],
+                    'ville-station1': [
+                        { id: 'int007', reference: 'INT-2023-102', date: '07/07/2023', technicien: 'Diallo Seydou', domaine: 'Groupe électrogène' }
+                    ],
+                    'ville-station2': [
+                        { id: 'int008', reference: 'INT-2023-125', date: '15/08/2023', technicien: 'Osei Kwame', domaine: 'Cuve et tuyauterie' }
+                    ]
+                };
+                
+                return interventionsMap[stationId] || [];
+            }
+            
+            // Réinitialisation du formulaire
+            document.getElementById('resetBtn').addEventListener('click', function() {
+                if (confirm('Êtes-vous sûr de vouloir réinitialiser le formulaire ? Toutes les données saisies seront perdues.')) {
+                    document.getElementById('reportForm').reset();
+                    
+                    // Réinitialiser l'éditeur
+                    quill.setText('');
+                    
+                    // Réinitialiser les documents et produits supplémentaires
+                    const documentsContainer = document.getElementById('documentsContainer');
+                    const firstDocument = documentsContainer.firstElementChild;
+                    documentsContainer.innerHTML = '';
+                    documentsContainer.appendChild(firstDocument);
+                    
+                    const productsContainer = document.getElementById('productsContainer');
+                    const firstProduct = productsContainer.firstElementChild;
+                    productsContainer.innerHTML = '';
+                    productsContainer.appendChild(firstProduct);
+                    
+                    // Réinitialiser les champs
+                    document.querySelectorAll('input:not(#dateAjout):not(#reference)').forEach(input => {
+                        if (input.type === 'number') {
+                            if (input.classList.contains('quantity')) {
+                                input.value = 1;
+                            } else {
+                                input.value = '';
+                            }
+                        } else {
+                            input.value = '';
+                        }
+                    });
+                    
+                    document.querySelectorAll('select').forEach(select => {
+                        select.selectedIndex = 0;
+                    });
+                    
+                    // Recalculer le coût total
+                    calculateTotalCost();
+                    
+                    // Cacher les champs "préciser autre"
+                    document.querySelectorAll('.preciser-autre').forEach(div => {
+                        div.classList.add('hidden');
+                    });
+                }
+            });
+            
+            // Soumission du formulaire
+            document.getElementById('reportForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                saveFormData();
+                alert('Les données ont été enregistrées avec succès !');
+            });
+            
+            // Enregistrer et générer le rapport
+            document.getElementById('genReportBtn').addEventListener('click', function() {
+                if (validateForm()) {
+                    saveFormData();
+                    generateReport();
+                }
+            });
+            
+            // Fonction pour valider le formulaire
+            function validateForm() {
+                // Implémenter la validation personnalisée si nécessaire
+                return document.getElementById('reportForm').checkValidity();
+            }
+            
+            // Fonction pour enregistrer les données du formulaire
+            function saveFormData() {
+                // Dans une application réelle, cette fonction enverrait les données à un serveur
+                // Ici, nous simulons simplement l'enregistrement
+                const formData = {
+                    dateAjout: document.getElementById('dateAjout').value,
+                    reference: document.getElementById('reference').value,
+                    station: document.getElementById('station').value,
+                    documents: [],
+                    produits: [],
+                    coutTotal: document.getElementById('coutTotal').value,
+                    intervention: document.getElementById('intervention').value,
+                    remarque: quill.root.innerHTML
+                };
+                
+                // Collecter les documents
+                document.querySelectorAll('.document-item').forEach(doc => {
+                    const type = doc.querySelector('.document-type').value;
+                    const preciserAutre = type === 'autre' ? doc.querySelector('.preciser-autre input').value : '';
+                    
+                    const fileInput = doc.querySelector('.document-file');
+                    const file = fileInput.files[0];
+                    let fileData = null;
+                    
+                    if (file) {
+                        // Dans une application réelle, vous géreriez le téléchargement du fichier vers un serveur
+                        // Ici, nous allons stocker l'URL de l'image pour la prévisualisation
+                        if (file.type.startsWith('image/') && doc.querySelector('.image-preview img')) {
+                            fileData = doc.querySelector('.image-preview img').src;
+                        } else if (file.type === 'application/pdf') {
+                            fileData = 'pdf';
+                        }
+                    }
+                    
+                    formData.documents.push({
+                        fichier: file ? file.name : '',
+                        fileData: fileData,
+                        type: type,
+                        preciserAutre: preciserAutre,
+                        datePrise: doc.querySelector('input[type="date"]').value,
+                        reference: doc.querySelector('input[type="text"]').value
+                    });
+                });
+                
+                // Collecter les produits
+                document.querySelectorAll('.product-item').forEach(prod => {
+                    formData.produits.push({
+                        designation: prod.querySelector('.designation').value,
+                        quantite: prod.querySelector('.quantity').value,
+                        cout: prod.querySelector('.cost').value,
+                        fournisseur: prod.querySelector('select').value
+                    });
+                });
+                
+                // Stocker les données (dans un cas réel, cela serait envoyé à un serveur)
+                console.log('Données enregistrées:', formData);
+                localStorage.setItem('reportData', JSON.stringify(formData));
+                
+                return formData;
+            }
+            
+            // Fonction pour générer le rapport
+            function generateReport() {
+                // Dans une application réelle, cette fonction générerait un rapport PDF ou HTML
+                alert('Le rapport a été généré avec succès !');
+                
+                // Simuler l'ouverture d'un rapport
+                window.open('about:blank', '_blank')?.document.write(`
+                    <html>
+                        <head>
+                            <title>Rapport - ${document.getElementById('reference').value}</title>
+                            <style>
+                                body { font-family: Arial, sans-serif; line-height: 1.6; }
+                                .header { text-align: center; margin-bottom: 30px; }
+                                .section { margin-bottom: 20px; }
+                                table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+                                th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                                th { background-color: #f2f2f2; }
+                                .footer { margin-top: 50px; text-align: center; font-size: 14px; color: #777; }
+                            </style>
+                        </head>
+                        <body>
+                            <div class="header">
+                                <h1>Rapport de Commande</h1>
+                                <p>Référence: ${document.getElementById('reference').value}</p>
+                                <p>Date: ${document.getElementById('dateAjout').value}</p>
+                            </div>
+                            
+                            <div class="section">
+                                <h2>Informations Générales</h2>
+                                <p><strong>Station:</strong> ${document.getElementById('station').options[document.getElementById('station').selectedIndex].text}</p>
+                                <p><strong>Coût Total:</strong> ${document.getElementById('coutTotal').value} FCFA</p>
+                            </div>
+                            
+                            <div class="section">
+                                <h2>Produits</h2>
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Désignation</th>
+                                            <th>Quantité</th>
+                                            <th>Coût Unitaire</th>
+                                            <th>Coût Total</th>
+                                            <th>Fournisseur</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${Array.from(document.querySelectorAll('.product-item')).map(prod => {
+                                            const designation = prod.querySelector('.designation').value;
+                                            const quantity = prod.querySelector('.quantity').value;
+                                            const cost = prod.querySelector('.cost').value;
+                                            const totalCost = (quantity * cost).toFixed(2);
+                                            const fournisseur = prod.querySelector('select').options[prod.querySelector('select').selectedIndex].text;
+                                            
+                                            return `
+                                                <tr>
+                                                    <td>${designation}</td>
+                                                    <td>${quantity}</td>
+                                                    <td>${cost} FCFA</td>
+                                                    <td>${totalCost} FCFA</td>
+                                                    <td>${fournisseur}</td>
+                                                </tr>
+                                            `;
+                                        }).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="section">
+                                <h2>Remarque / Observation</h2>
+                                <div>${quill.root.innerHTML}</div>
+                            </div>
+                            
+                            <div class="section">
+                                <h2>Documents Affiliés</h2>
+                                
+                                <div class="report-images">
+                                    ${Array.from(document.querySelectorAll('.document-item')).map(doc => {
+                                        const fileInput = doc.querySelector('.document-file');
+                                        const file = fileInput.files[0];
+                                        const preview = doc.querySelector('.image-preview img');
+
+
+
+                                        const typeSelect = doc.querySelector('.document-type');
+                                        let type = typeSelect.options[typeSelect.selectedIndex].text;
+                                        
+                                        if (typeSelect.value === 'autre') {
+                                            type += ` (${doc.querySelector('.preciser-autre input').value})`;
+                                        }
+                                        
+                                        const fileName = fileInput.files[0] ? fileInput.files[0].name : 'Aucun fichier';
+                                        const datePrise = doc.querySelector('input[type="date"]').value;
+                                        const reference = doc.querySelector('input[type="text"]').value;
+
+
+
+                                        
+                                        if (file && file.type.startsWith('image/') && preview) {
+                                            return ` 
+                                                <img src="${preview.src}" alt="Document" title="${file.name}">
+                                                <table style="margin-top: 15px">
+                                                    <tbody>
+                                                        <tr>
+                                                            <td>${type}</td>
+                                                            <td>${fileName}</td>
+                                                            <td>${datePrise}</td>
+                                                            <td>${reference}</td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            `;
+                                        } else if (file && file.type === 'application/pdf') {
+                                            return `<div style="padding: 10px; border: 1px solid #ddd; border-radius: 5px; background-color: #f9f9f9;">
+                                                <p style="margin: 0;"><strong>PDF:</strong> ${file.name}</p>
+                                            </div>`;
+                                        }
+                                        return '';
+                                    }).join('')}
+                                </div>
+                                
+                                <!--<table>
+                                    <thead>
+                                        <tr>
+                                            <th>Type</th>
+                                            <th>Fichier</th>
+                                            <th>Date de Prise</th>
+                                            <th>Référence</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${Array.from(document.querySelectorAll('.document-item')).map(doc => {
+                                            const typeSelect = doc.querySelector('.document-type');
+                                            let type = typeSelect.options[typeSelect.selectedIndex].text;
+                                            
+                                            if (typeSelect.value === 'autre') {
+                                                type += ` (${doc.querySelector('.preciser-autre input').value})`;
+                                            }
+                                            
+                                            const fileInput = doc.querySelector('.document-file');
+                                            const file = fileInput.files[0] ? fileInput.files[0].name : 'Aucun fichier';
+                                            const datePrise = doc.querySelector('input[type="date"]').value;
+                                            const reference = doc.querySelector('input[type="text"]').value;
+                                            
+                                            return `
+                                                <tr>
+                                                    <td>${type}</td>
+                                                    <td>${file}</td>
+                                                    <td>${datePrise}</td>
+                                                    <td>${reference}</td>
+                                                </tr>
+                                            `;
+                                        }).join('')}
+                                    </tbody>
+                                </table>-->
+                            </div>
+                            
+                            
+                            
+                            <div class="footer">
+                                <p>Rapport généré le ${new Date().toLocaleString('fr-FR')}</p>
+                            </div>
+                        </body>
+                    </html>
+                `);
+            }
+        });
+    </script>
+</body>
+</html>
